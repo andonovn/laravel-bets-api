@@ -27,6 +27,11 @@ class BetsApi
     protected $country;
 
     /**
+     * @var string|null
+     */
+    protected $date;
+
+    /**
      * Fetcher constructor.
      *
      * @param  ClientInterface  $http
@@ -75,6 +80,19 @@ class BetsApi
     public function forCountry(string $country) : BetsApi
     {
         $this->country = $country;
+
+        return $this;
+    }
+
+    /**
+     * Set the date
+     *
+     * @param  string  $date
+     * @return BetsApi
+     */
+    public function forDate(string $date) : BetsApi
+    {
+        $this->date = $date;
 
         return $this;
     }
@@ -285,7 +303,7 @@ class BetsApi
                 'away' => null,
             ];
         }
-        
+
         return $odds;
     }
 
@@ -327,7 +345,8 @@ class BetsApi
 
         if ($response->getStatusCode() !== 200) {
             throw new CallFailedException(
-                'Status: ' . $response->getStatusCode() . '. Content: ' . json_encode($response->getBody()->getContents()));
+                'Status: ' . $response->getStatusCode() . '. Content: ' . json_encode($response->getBody()->getContents())
+            );
         }
 
         return json_decode($response->getBody()->getContents(), true);
@@ -350,7 +369,8 @@ class BetsApi
 
         if ($response->getStatusCode() !== 200) {
             throw new CallFailedException(
-                'Status: ' . $response->getStatusCode() . '. Content: ' . json_encode($response->getBody()->getContents()));
+                'Status: ' . $response->getStatusCode() . '. Content: ' . json_encode($response->getBody()->getContents())
+            );
         }
 
         return json_decode($response->getBody()->getContents(), true);
@@ -367,13 +387,16 @@ class BetsApi
      */
     protected function endedEventsCall(int $sportId, int $leagueId, int $page) : array
     {
-        $response = $this->http->get(
-            $this->endpoint('events/ended', $page) . '&sport_id=' . $sportId . '&league_id=' . $leagueId
-        );
+        $endpoint = $this->endpoint('events/ended', $page)
+            . '&sport_id=' . $sportId . '&league_id=' . $leagueId;
+        $endpoint .= $this->date ? '&day=' . $this->date : '';
+
+        $response = $this->http->get($endpoint);
 
         if ($response->getStatusCode() !== 200) {
             throw new CallFailedException(
-                'Status: ' . $response->getStatusCode() . '. Content: ' . json_encode($response->getBody()->getContents()));
+                'Status: ' . $response->getStatusCode() . '. Content: ' . json_encode($response->getBody()->getContents())
+            );
         }
 
         return json_decode($response->getBody()->getContents(), true);
@@ -394,7 +417,8 @@ class BetsApi
 
         if ($response->getStatusCode() !== 200) {
             throw new CallFailedException(
-                'Status: ' . $response->getStatusCode() . '. Content: ' . json_encode($response->getBody()->getContents()));
+                'Status: ' . $response->getStatusCode() . '. Content: ' . json_encode($response->getBody()->getContents())
+            );
         }
 
         return json_decode($response->getBody()->getContents(), true);
