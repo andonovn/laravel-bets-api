@@ -287,6 +287,7 @@ class BetsApi
                 continue;
             }
 
+            $odds['bookmaker'] = $bookmaker;
             $odds['result'] = [
                 'home' => $bookmakerOdds['end']['1_1']['home_od'],
                 'draw' => $bookmakerOdds['end']['1_1']['draw_od'],
@@ -297,6 +298,7 @@ class BetsApi
         }
 
         if (empty($odds['result'])) {
+            $odds['bookmaker'] = null;
             $odds['result'] = [
                 'home' => null,
                 'draw' => null,
