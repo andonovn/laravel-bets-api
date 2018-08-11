@@ -5,6 +5,7 @@ namespace Andonovn\LaravelBetsApi;
 use GuzzleHttp\{
     Client, ClientInterface
 };
+use GuzzleHttp\Exception\TransferException as HttpException;
 use Andonovn\LaravelBetsApi\Exceptions\{
     CallFailedException, InvalidConfigException, MissingConfigException
 };
@@ -56,18 +57,34 @@ class BetsApi
      */
     protected function validateConfig(array $config)
     {
-        $requiredKeys = ['token', 'endpoint'];
+        $requiredKeys = ['token', 'endpoint', 'failed_calls'];
 
         foreach ($requiredKeys as $key) {
-            if (array_key_exists($key, $config)) {
-                if (is_string($key)) {
-                    continue;
-                }
-
-                throw new InvalidConfigException('The following config option must be string: ' . $key);
+            if (! array_key_exists($key, $config)) {
+                throw new MissingConfigException('The following config option is missing: ' . $key);
             }
 
-            throw new MissingConfigException('The following config option is missing: ' . $key);
+            if (in_array($key, ['token', 'endpoint'], true)) {
+                if (! is_string($config[$key])) {
+                    throw new InvalidConfigException('The following config option must be string: ' . $key);
+                }
+            } else {
+                if (! is_array($config['failed_calls'])) {
+                    throw new InvalidConfigException('The following config option must be array: failed_calls');
+                }
+
+                $failedCallsKeys = ['retries', 'seconds_to_sleep'];
+
+                foreach ($failedCallsKeys as $key) {
+                    if (! array_key_exists($key, $config['failed_calls'])) {
+                        throw new MissingConfigException('The following config option is missing: failed_calls.' . $key);
+                    }
+
+                    if (! is_int($config['failed_calls'][$key])) {
+                        throw new InvalidConfigException('The following config option must be int: failed_calls.' . $key);
+                    }
+                }
+            }
         }
     }
 
@@ -314,19 +331,36 @@ class BetsApi
      *
      * @param  string  $route
      * @param  int|null  $page
+     * @param  bool  $isV2  Some requests requires v2, while others don't work with v2...
      * @return string
      */
-    protected function endpoint(string $route, ?int $page = null) : string
+    protected function endpoint(string $route, ?int $page = null, bool $isV2 = false) : string
     {
-        $endpoint = $this->config['endpoint']
-            . $route
-            . '?token=' . $this->config['token'];
+        $endpoint = $this->config['endpoint'];
+
+        if ($isV2) {
+            $endpoint = str_replace('/v1', '/v2', $endpoint);
+        }
+
+        $endpoint .= $route . '?token=' . $this->config['token'];
 
         if ($page) {
             $endpoint .= '&page=' . $page;
         }
 
         return $endpoint;
+    }
+
+    /**
+     * Build the requested route's v2 endpoint
+     *
+     * @param  string  $route
+     * @param  int|null  $page
+     * @return string
+     */
+    protected function endpointV2(string $route, ?int $page = null) : string
+    {
+        return $this->endpoint($route, $page, true);
     }
 
     /**
@@ -339,19 +373,11 @@ class BetsApi
      */
     protected function leaguesCall(int $sportId, int $page) : array
     {
-        $endpoint = $this->endpoint('league', $page) . '&sport_id=' . $sportId;
+        $endpoint = $this->endpoint('league', $page)
+            . '&sport_id=' . $sportId
+            . ($this->country ? '&cc=' . $this->country : '');
 
-        $endpoint .= $this->country ? '&cc=' . $this->country : '';
-
-        $response = $this->http->get($endpoint);
-
-        if ($response->getStatusCode() !== 200) {
-            throw new CallFailedException(
-                'Status: ' . $response->getStatusCode() . '. Content: ' . json_encode($response->getBody()->getContents())
-            );
-        }
-
-        return json_decode($response->getBody()->getContents(), true);
+        return $this->call($endpoint);
     }
 
     /**
@@ -365,17 +391,10 @@ class BetsApi
      */
     protected function eventsCall(int $sportId, int $leagueId, int $page) : array
     {
-        $response = $this->http->get(
-            $this->endpoint('events/upcoming', $page) . '&league_id=' . $leagueId . '&sport_id=' . $sportId
-        );
+        $endpoint = $this->endpointV2('events/upcoming', $page)
+            . '&league_id=' . $leagueId . '&sport_id=' . $sportId;
 
-        if ($response->getStatusCode() !== 200) {
-            throw new CallFailedException(
-                'Status: ' . $response->getStatusCode() . '. Content: ' . json_encode($response->getBody()->getContents())
-            );
-        }
-
-        return json_decode($response->getBody()->getContents(), true);
+        return $this->call($endpoint);
     }
 
     /**
@@ -389,19 +408,11 @@ class BetsApi
      */
     protected function endedEventsCall(int $sportId, int $leagueId, int $page) : array
     {
-        $endpoint = $this->endpoint('events/ended', $page)
-            . '&sport_id=' . $sportId . '&league_id=' . $leagueId;
-        $endpoint .= $this->date ? '&day=' . $this->date : '';
+        $endpoint = $this->endpointV2('events/ended', $page)
+            . '&sport_id=' . $sportId . '&league_id=' . $leagueId
+            . ($this->date ? '&day=' . $this->date : '');
 
-        $response = $this->http->get($endpoint);
-
-        if ($response->getStatusCode() !== 200) {
-            throw new CallFailedException(
-                'Status: ' . $response->getStatusCode() . '. Content: ' . json_encode($response->getBody()->getContents())
-            );
-        }
-
-        return json_decode($response->getBody()->getContents(), true);
+        return $this->call($endpoint);
     }
 
     /**
@@ -413,16 +424,35 @@ class BetsApi
      */
     protected function oddsCall(int $eventId) : array
     {
-        $response = $this->http->get(
-            $this->endpoint('event/odds/summary') . '&event_id=' . $eventId
-        );
+        $endpoint = $this->endpoint('event/odds/summary')
+            . '&event_id=' . $eventId;
 
-        if ($response->getStatusCode() !== 200) {
-            throw new CallFailedException(
-                'Status: ' . $response->getStatusCode() . '. Content: ' . json_encode($response->getBody()->getContents())
-            );
+        return $this->call($endpoint);
+    }
+
+    /**
+     * Trigger a call to the given the BetsApi service's endpoint
+     * 
+     * @param  string  $endpoint
+     * @return array
+     * @throws CallFailedException
+     */
+    protected function call(string $endpoint) : array
+    {
+        for ($attempt = 1; $attempt <= $this->config['failed_calls']['retries'] + 1; $attempt++) {
+            try {
+                $response = $this->http->get($endpoint);
+
+                return json_decode($response->getBody()->getContents(), true);
+            } catch (HttpException $e) {
+                if ($attempt == $this->config['failed_calls']['retries'] + 1) {
+                    throw CallFailedException::raise($response, $endpoint);
+                }
+
+                if ($this->config['failed_calls']['seconds_to_sleep'] > 0) {
+                    sleep($this->config['failed_calls']['seconds_to_sleep']);
+                }
+            }
         }
-
-        return json_decode($response->getBody()->getContents(), true);
     }
 }
