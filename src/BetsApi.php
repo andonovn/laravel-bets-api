@@ -9,6 +9,9 @@ use GuzzleHttp\Exception\TransferException as HttpException;
 use Andonovn\LaravelBetsApi\Exceptions\{
     CallFailedException, InvalidConfigException, MissingConfigException
 };
+use Andonovn\LaravelBetsApi\Events\ {
+    ResponseReceived, RequestFailed
+};
 
 class BetsApi
 {
@@ -443,8 +446,14 @@ class BetsApi
             try {
                 $response = $this->http->get($endpoint);
 
-                return json_decode($response->getBody()->getContents(), true);
+                $jsonResponse = $response->getBody()->getContents();
+
+                event(new ResponseReceived($response, $jsonResponse, $endpoint));
+
+                return json_decode($jsonResponse, true);
             } catch (HttpException $e) {
+                event(new RequestFailed($response));
+
                 if ($attempt == $this->config['failed_calls']['retries'] + 1) {
                     throw CallFailedException::raise($response, $endpoint);
                 }
