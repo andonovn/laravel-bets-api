@@ -1,5 +1,8 @@
 # Changelog for Laravel Bets Api
 
+## 1.0.4 (2018-08-15)
+- Bug fix: Used wrong variable when catching a failed request
+
 ## 1.0.3 (2018-08-11)
 - Add support for requests to both v1 and v2 endpoints
 - Retry failed requests few times before throwing an exception. That's configurable via the config file's failed_calls key
