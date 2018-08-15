@@ -455,7 +455,7 @@ class BetsApi
                 event(new RequestFailed($e));
 
                 if ($attempt == $this->config['failed_calls']['retries'] + 1) {
-                    throw CallFailedException::raise($response, $endpoint);
+                    throw CallFailedException::whenAttemptedToReach($endpoint);
                 }
 
                 if ($this->config['failed_calls']['seconds_to_sleep'] > 0) {

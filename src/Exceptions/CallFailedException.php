@@ -9,18 +9,11 @@ class CallFailedException extends BetsApiException
     /**
      * Raise a CallFailedException
      * 
-     * @param  ResponseInterface  $response
      * @param  string  $endpoint
      * @return CallFailedException
      */
-    public static function raise(ResponseInterface $response, string $endpoint) : self
+    public static function whenAttemptedToReach(string $endpoint) : self
     {
-        $responseAsString = $response->getBody()->getContents();
-
-        if (! is_string($responseAsString)) {
-            $responseAsString = json_encode($responseAsString);
-        }
-
-        return new static('BetsApi call has failed. Endpoint: ' . $endpoint . ' Response: ' . $responseAsString);
+        return new static('BetsApi call has failed. Endpoint: ' . $endpoint);
     }
 }
