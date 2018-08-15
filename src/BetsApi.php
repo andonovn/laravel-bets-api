@@ -452,7 +452,7 @@ class BetsApi
 
                 return json_decode($jsonResponse, true);
             } catch (HttpException $e) {
-                event(new RequestFailed($response));
+                event(new RequestFailed($e));
 
                 if ($attempt == $this->config['failed_calls']['retries'] + 1) {
                     throw CallFailedException::raise($response, $endpoint);
