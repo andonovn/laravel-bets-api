@@ -1,5 +1,8 @@
 # Changelog for Laravel Bets Api
 
+## 1.0.5 (2018-08-18)
+- Bug fix: env variables which holds integer no longer fail the int validation
+
 ## 1.0.4 (2018-08-15)
 - Bug fix: Used wrong variable when catching a failed request
 

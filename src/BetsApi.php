@@ -83,7 +83,9 @@ class BetsApi
                         throw new MissingConfigException('The following config option is missing: failed_calls.' . $key);
                     }
 
-                    if (! is_int($config['failed_calls'][$key])) {
+                    $int = $config['failed_calls'][$key];
+
+                    if ((! is_numeric($int)) || ($int - intval($int) != 0)) {
                         throw new InvalidConfigException('The following config option must be int: failed_calls.' . $key);
                     }
                 }
