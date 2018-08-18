@@ -1,5 +1,8 @@
 # Changelog for Laravel Bets Api
 
+## 1.0.6 (2018-08-18)
+- Added support for the /events/inplay endpoint
+
 ## 1.0.5 (2018-08-18)
 - Bug fix: env variables which holds integer no longer fail the int validation
 
