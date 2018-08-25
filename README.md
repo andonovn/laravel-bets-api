@@ -41,11 +41,10 @@ public function index(Andonovn\LaravelBetsApi\BetsApi $betsApi)
 ```
 
 ## Error handling
-An `Andonovn\LaravelBetsApi\Exceptions\CallFailedException` will be raised in case some of the API calls fails.
-Also, there are few more exceptions which are less likely to every occur. They are all located in the
- `Andonovn\LaravelBetsApi\Exceptions` namespace and they all inherit from the abstract
-  `Andonovn\LaravelBetsApi\Exceptions\BetsApiException` so you can safely type-hint
-  just the abstract one in your handler.
+An `Andonovn\LaravelBetsApi\Exceptions\CallFailedException` will be raised when an API call fails.
+Also, there are few more exceptions which are less likely to occur but you can be safe by handling all
+of them by just catching the abstract `Andonovn\LaravelBetsApi\Exceptions\BetsApiException`.
+In case you want to learn more about the exceptions, they are all located in the `Andonovn\LaravelBetsApi\Exceptions` namespace.
 
 ## Events
 An `Andonovn\LaravelBetsApi\Events\RequestFailed` will be dispatched when a request fails.
