@@ -315,6 +315,32 @@ class BetsApi
     }
 
     /**
+     * Get the events merge history
+     *
+     * @param  int|null  $since
+     * @return array
+     * @throws CallFailedException
+     */
+    public function eventsMergeHistory(?int $since = null) : array
+    {
+        $events = [];
+
+        $page = 1;
+
+        do {
+            $eventsResponse = $this->eventsMergeHistoryCall($page++, $since);
+
+            $totalPages = (int) ceil(
+                $eventsResponse['pager']['total'] / $eventsResponse['pager']['per_page']
+            );
+
+            $events = array_merge($events, $eventsResponse['results']);
+        } while ($page <= $totalPages);
+
+        return $events;
+    }
+
+    /**
      * Get the given event's odds
      *
      * @param  int $eventId
@@ -475,6 +501,24 @@ class BetsApi
     {
         $endpoint = $this->endpoint('event/odds/summary')
             . '&event_id=' . $eventId;
+
+        return $this->call($endpoint);
+    }
+
+    /**
+     * Call the BetsApi to get the events merge history
+     *
+     * @param  int|null  $since  Unix timestamp
+     * @return array
+     * @throws CallFailedException
+     */
+    protected function eventsMergeHistoryCall(int $page, ?int $since = null) : array
+    {
+        $endpoint = $this->endpoint('event/merge_history', $page);
+        
+        if ($since) {
+            $endpoint .= '&since_time=' . $since;
+        }
 
         return $this->call($endpoint);
     }
