@@ -46,3 +46,12 @@ Also, there are few more exceptions which are less likely to every occur. They a
  `Andonovn\LaravelBetsApi\Exceptions` namespace and they all inherit from the abstract
   `Andonovn\LaravelBetsApi\Exceptions\BetsApiException` so you can safely type-hint
   just the abstract one in your handler.
+
+## Events
+An `Andonovn\LaravelBetsApi\Events\RequestFailed` will be dispatched when a request fails.
+The package will try to retry the request until it hits the max allowed retries specified in the config.
+Note that the event will be raised for every retry that was made. When it hits the attempts limit, it will
+throw the `Andonovn\LaravelBetsApi\Exceptions\CallFailedException` exception as described above.
+
+There is one more event that the package raise and that's the `Andonovn\LaravelBetsApi\Events\ResponseReceived`
+which you may use to track how many requests you have left, and other similar info that's available in each response.
