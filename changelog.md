@@ -1,5 +1,8 @@
 # Changelog for Laravel Bets Api
 
+## 1.0.8 (2018-10-21)
+- Added support for the /event/view endpoint
+
 ## 1.0.7 (2018-08-25)
 - Added support for the /event/merge_history endpoint
 

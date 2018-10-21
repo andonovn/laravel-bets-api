@@ -261,6 +261,18 @@ class BetsApi
     }
 
     /**
+     * View an event
+     *
+     * @param  int $eventId
+     * @return array
+     * @throws CallFailedException
+     */
+    public function viewEvent(int $eventId) : array
+    {
+        return current($this->eventViewCall($eventId)['results']);
+    }
+
+    /**
      * Get the given league's live events
      *
      * @param  int $sportId
@@ -453,6 +465,18 @@ class BetsApi
             . '&league_id=' . $leagueId . '&sport_id=' . $sportId;
 
         return $this->call($endpoint);
+    }
+    
+    /**
+     * Call the BetsApi to view an event
+     *
+     * @param  int $eventId
+     * @return array
+     * @throws CallFailedException
+     */
+    protected function eventViewCall(int $eventId) : array
+    {
+        return $this->call($this->endpoint('event/view') . '&event_id=' . $eventId);
     }
 
     /**
