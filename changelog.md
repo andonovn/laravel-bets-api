@@ -1,5 +1,8 @@
 # Changelog for Laravel Bets Api
 
+## 1.0.9 (2020-03-31)
+- Laravel 7 support
+
 ## 1.0.8 (2018-10-21)
 - Added support for the /event/view endpoint
 
