@@ -1,5 +1,8 @@
 # Changelog for Laravel Bets Api
 
+## 2.0.0 (2021-04-02)
+- Laravel 8 support (too late, I know)
+
 ## 1.0.9 (2020-03-31)
 - Laravel 7 support
 
