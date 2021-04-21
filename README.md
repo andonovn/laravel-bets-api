@@ -30,7 +30,7 @@ service providers which are located in the `/config/app.php`'s `providers` array
 Resolve the `Andonovn\LaravelBetsApi\BetsApi` class from the container and use one of the public methods.
 Here is an example:
 ```php
-public function index(Andonovn\LaravelBetsApi\BetsApi $betsApi)
+public function index(\Andonovn\LaravelBetsApi\BetsApi $betsApi)
 {
     $leagues = $betsApi->soccerLeagues();
     
